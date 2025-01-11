@@ -3,21 +3,23 @@
  */
 package com.stellarsunset.semver;
 
-import org.gradle.testfixtures.ProjectBuilder;
 import org.gradle.api.Project;
+import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * A simple unit test for the 'com.stellarsunset.semver.greeting' plugin.
  */
 class AutoSemverPluginTest {
-    @Test void pluginRegistersATask() {
+    @Test
+    void pluginRegistersATask() {
         // Create a test project and apply the plugin
         Project project = ProjectBuilder.builder().build();
-        project.getPlugins().apply("com.stellarsunset.semver.greeting");
+        project.getPlugins().apply("com.stellarsunset.semver.autosemver");
 
         // Verify the result
-        assertNotNull(project.getTasks().findByName("greeting"));
+        assertNotNull(project.getTasks().findByName("release"));
     }
 }

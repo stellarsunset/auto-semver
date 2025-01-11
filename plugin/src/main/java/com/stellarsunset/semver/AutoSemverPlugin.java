@@ -3,17 +3,55 @@
  */
 package com.stellarsunset.semver;
 
-import org.gradle.api.Project;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.Severity;
+
+import javax.inject.Inject;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * A simple 'hello world' plugin.
  */
+@SuppressWarnings("UnstableApiUsage")
 public class AutoSemverPlugin implements Plugin<Project> {
+
+    // https://docs.gradle.org/current/samples/sample_problems_api_usage.html
+    private final ProblemReporter problemReporter;
+
+    @Inject
+    public AutoSemverPlugin(Problems problems) {
+        this.problemReporter = requireNonNull(problems).getReporter();
+    }
+
+    @Override
     public void apply(Project project) {
-        // Register a task
-        project.getTasks().register("greeting", task -> {
-            task.doLast(s -> System.out.println("Hello from plugin 'com.stellarsunset.semver.greeting'"));
-        });
+        var tasks = project.getTasks();
+
+        Repository repository = createRepository(project);
+        Git git = new Git(repository);
+
+        tasks.register("release", IncrementVersionTask.class, git);
+    }
+
+    private Repository createRepository(Project project) {
+        try {
+            return new FileRepositoryBuilder()
+                    .setGitDir(project.getProjectDir())
+                    .build();
+        } catch (Exception e) {
+            throw problemReporter.throwing(
+                    problem -> problem
+                            .id("unable-to-read-git-repository", "Root project directory not a Git repository")
+                            .severity(Severity.ERROR)
+                            .solution("Please ensure your git repository is rooted in the same location as the base project directory.")
+            );
+        }
     }
 }
