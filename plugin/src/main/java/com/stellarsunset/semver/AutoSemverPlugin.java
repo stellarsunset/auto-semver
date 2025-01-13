@@ -16,13 +16,9 @@ import javax.inject.Inject;
 
 import static java.util.Objects.requireNonNull;
 
-/**
- * A simple 'hello world' plugin.
- */
 @SuppressWarnings("UnstableApiUsage")
 public class AutoSemverPlugin implements Plugin<Project> {
 
-    // https://docs.gradle.org/current/samples/sample_problems_api_usage.html
     private final ProblemReporter problemReporter;
 
     @Inject
@@ -46,6 +42,7 @@ public class AutoSemverPlugin implements Plugin<Project> {
                     .setGitDir(project.getProjectDir())
                     .build();
         } catch (Exception e) {
+            // https://docs.gradle.org/current/samples/sample_problems_api_usage.html
             throw problemReporter.throwing(
                     problem -> problem
                             .id("unable-to-read-git-repository", "Root project directory not a Git repository")

@@ -3,20 +3,18 @@
  */
 package com.stellarsunset.semver;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.io.FileWriter;
-import java.nio.file.Files;
-import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.GradleRunner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * A simple functional test for the 'com.stellarsunset.semver.greeting' plugin.
- */
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class AutoSemverPluginFunctionalTest {
     @TempDir
     File projectDir;
@@ -29,23 +27,24 @@ class AutoSemverPluginFunctionalTest {
         return new File(projectDir, "settings.gradle");
     }
 
-    @Test void canRunTask() throws IOException {
+    @Test
+    void canRunTask() throws IOException {
         writeString(getSettingsFile(), "");
         writeString(getBuildFile(),
-            "plugins {" +
-            "  id('com.stellarsunset.semver.greeting')" +
-            "}");
+                "plugins {" +
+                        "  id('com.stellarsunset.semver.autosemver')" +
+                        "}");
 
         // Run the build
         GradleRunner runner = GradleRunner.create();
         runner.forwardOutput();
         runner.withPluginClasspath();
-        runner.withArguments("greeting");
+        runner.withArguments("release");
         runner.withProjectDir(projectDir);
         BuildResult result = runner.build();
 
         // Verify the result
-        assertTrue(result.getOutput().contains("Hello from plugin 'com.stellarsunset.semver.greeting'"));
+        assertTrue(result.getOutput().contains("Hello from plugin 'com.stellarsunset.semver.autosemver'"));
     }
 
     private void writeString(File file, String string) throws IOException {

@@ -1,5 +1,6 @@
 plugins {
     `java-gradle-plugin`
+    jacoco
 }
 
 repositories {
@@ -41,10 +42,22 @@ val functionalTest by tasks.registering(Test::class) {
 
 gradlePlugin.testSourceSets.add(functionalTestSourceSet)
 
+tasks.jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
 tasks.named<Task>("check") {
     dependsOn(functionalTest)
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()
+tasks.javadoc {
+    options.outputLevel = JavadocOutputLevel.QUIET
 }

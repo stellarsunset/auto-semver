@@ -5,6 +5,7 @@ default:
 # Run the tests for the project
 test:
   ./gradlew test
+  ./gradlew functionalTest
 
 # Perform a manual release of the project using the next version step of the specified type
 release step="patch":
