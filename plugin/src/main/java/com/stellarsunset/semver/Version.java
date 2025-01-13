@@ -26,6 +26,26 @@ public sealed interface Version {
     /**
      * Handle for a release version of software containing the standard semantic versioning components one would expect.
      */
+    static Release release(int major, int minor, int patch) {
+        return new Release(major, minor, patch);
+    }
+
+    /**
+     * Handle for a pre-release version, the release indicates the version it's a preview of, how many commits it's been
+     * since the previous release, and the hash of the current commit.
+     */
+    static PreRelease preRelease(Release release, int distance, String commit) {
+        return new PreRelease(release, distance, commit);
+    }
+
+    /**
+     * Wrap a version object as "dirty" indicating there are currently unstaged changes in the repository at the time of
+     * version generation.
+     */
+    static Dirty dirty(Version version) {
+        return new Dirty(version);
+    }
+
     record Release(int major, int minor, int patch) implements Version {
         public Release {
             checkArgument(major >= 0, "Major version must be non-negative: %s", major);
@@ -50,10 +70,6 @@ public sealed interface Version {
         }
     }
 
-    /**
-     * Handle for a pre-release version, the release indicates the version it's a preview of, how many commits it's been
-     * since the previous release, and the hash of the current commit.
-     */
     record PreRelease(Release release, int distance, String commit) implements Version {
         public PreRelease {
             checkArgument(distance > 0, "Distance must be greater than zero for a snapshot: %s", distance);
@@ -61,10 +77,6 @@ public sealed interface Version {
         }
     }
 
-    /**
-     * Wrap a version object as "dirty" indicating there are currently unstaged changes in the repository at the time of
-     * version generation.
-     */
     record Dirty(Version version) implements Version {
     }
 
@@ -77,9 +89,11 @@ public sealed interface Version {
     record Serde() {
 
         /**
-         * Taken directly from <a href="https://semver.org/">semver.org</a>.
+         * Modified version of what's on <a href="https://semver.org/">semver.org</a> with some named capture groups.
          */
-        private static final Pattern REGEX = Pattern.compile("^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$");
+        private static final Pattern RELEASE = Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$");
+
+        private static final Pattern PRE_RELEASE = Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-alpha(?<distance>0|[1-9]\\d*)\\+(?<commit>[a-z]{7})(\\.dirty)?$");
 
         public String serialize(Version version) {
             return switch (version) {
@@ -90,11 +104,39 @@ public sealed interface Version {
         }
 
         public Version parse(String versionString) {
-            Matcher matcher = REGEX.matcher(versionString);
-            return null;
+
+            Matcher releaseMatcher = RELEASE.matcher(versionString);
+
+            if (releaseMatcher.find()) {
+                return parseRelease(releaseMatcher);
+            }
+
+            Matcher preReleaseMatcher = PRE_RELEASE.matcher(versionString);
+
+            if (preReleaseMatcher.find()) {
+                Release release = parseRelease(preReleaseMatcher);
+
+                PreRelease preRelease = preRelease(
+                        release,
+                        Integer.parseInt(preReleaseMatcher.group("distance")),
+                        preReleaseMatcher.group("commit")
+                );
+
+                return versionString.endsWith(".dirty") ? dirty(preRelease) : preRelease;
+            }
+
+            throw new IllegalVersionException(versionString);
         }
 
-        private static final class IllegalVersionException extends RuntimeException {
+        private Release parseRelease(Matcher matcher) {
+            return release(
+                    Integer.parseInt(matcher.group("major")),
+                    Integer.parseInt(matcher.group("minor")),
+                    Integer.parseInt(matcher.group("patch"))
+            );
+        }
+
+        static final class IllegalVersionException extends RuntimeException {
             public IllegalVersionException(String versionString) {
                 super(String.format("Unable to parse version string %s into one of the supported version formats.", versionString));
             }

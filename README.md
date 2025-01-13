@@ -1,7 +1,7 @@
 # AutoSemver
 
 [![Test](https://github.com/stellarsunset/auto-semver/actions/workflows/test.yaml/badge.svg)](https://github.com/stellarsunset/auto-semver/actions/workflows/test.yaml)
-[![codecov](https://codecov.io/gh/stellarsunset/auto-semver/graph/badge.svg?token=2SZ6MJxyXA)](https://codecov.io/gh/stellarsunset/auto-semver)
+[![codecov](https://codecov.io/gh/stellarsunset/auto-semver/graph/badge.svg?token=vOMUPNbOEG)](https://codecov.io/gh/stellarsunset/auto-semver)
 
 Automatic semantic version generation for Gradle projects based on annotated git tags.
 
