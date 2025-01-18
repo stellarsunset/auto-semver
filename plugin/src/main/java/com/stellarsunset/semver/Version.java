@@ -8,20 +8,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Represents the bounded collection of supported version formats.
  *
- * <p>The version interface only guarantees there is a string format for each version (via to
+ * <p>The version interface only guarantees there is a string format for each version through {@link Serde}.
  */
 public sealed interface Version {
-
-    /**
-     * Serialization and deserialization mechanics for Java versions.
-     *
-     * <p>This is provided outside the scope of {@link Object#toString()} and in a standalone class to decouple the Java
-     * representation of the object as a string from how it's serialized as what people would expect in a normal version
-     * string.
-     */
-    static Serde serde() {
-        return new Serde();
-    }
 
     /**
      * Handle for a release version of software containing the standard semantic versioning components one would expect.
@@ -44,6 +33,18 @@ public sealed interface Version {
      */
     static Dirty dirty(Version version) {
         return new Dirty(version);
+    }
+
+    /**
+     * Returns only the {@link Release} portion of the underlying version, useful for getting a handle on the previous
+     * release given the current version and then incrementing it.
+     */
+    static Release releasePart(Version version) {
+        return switch (version) {
+            case Version.Release r -> r;
+            case Version.PreRelease p -> p.release();
+            case Version.Dirty d -> releasePart(version);
+        };
     }
 
     record Release(int major, int minor, int patch) implements Version {
@@ -81,64 +82,123 @@ public sealed interface Version {
     }
 
     /**
-     * This is easy enough to convert to an interface if we need to support different string layouts of the same basic
-     * versioning information.
+     * Serialization and deserialization mechanics for {@link Version}s.
      *
-     * <p>For now we only support one layout, my layout, lol.
+     * <p>This is provided outside the scope of {@link Object#toString()} and in a standalone class to decouple the Java
+     * representation of the object as a string from how it's serialized as what people would expect in a normal version
+     * string.
      */
-    record Serde() {
+    interface Serde {
 
         /**
-         * Modified version of what's on <a href="https://semver.org/">semver.org</a> with some named capture groups.
+         * Returns a new {@link Serde} for versions that is compliant with the SemVer specification, intended for use in
+         * Java applications.
          */
-        private static final Pattern RELEASE = Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$");
-
-        private static final Pattern PRE_RELEASE = Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-alpha(?<distance>0|[1-9]\\d*)\\+(?<commit>[a-z]{7})(\\.dirty)?$");
-
-        public String serialize(Version version) {
-            return switch (version) {
-                case Dirty d -> String.format("%s.dirty", serialize(d.version));
-                case Release r -> String.format("%s.%s.%s", r.major, r.minor, r.patch);
-                case PreRelease s -> String.format("%s-alpha%s+%s", serialize(s.release), s.distance, s.commit);
-            };
+        static Serde java() {
+            return new Java();
         }
 
-        public Version parse(String versionString) {
-
-            Matcher releaseMatcher = RELEASE.matcher(versionString);
-
-            if (releaseMatcher.find()) {
-                return parseRelease(releaseMatcher);
-            }
-
-            Matcher preReleaseMatcher = PRE_RELEASE.matcher(versionString);
-
-            if (preReleaseMatcher.find()) {
-                Release release = parseRelease(preReleaseMatcher);
-
-                PreRelease preRelease = preRelease(
-                        release,
-                        Integer.parseInt(preReleaseMatcher.group("distance")),
-                        preReleaseMatcher.group("commit")
-                );
-
-                return versionString.endsWith(".dirty") ? dirty(preRelease) : preRelease;
-            }
-
-            throw new IllegalVersionException(versionString);
+        /**
+         * Returns a new {@link Serde} for versions suitable for reading and writing them in the format the git-describe
+         * command in the porcelain API provides.
+         */
+        static Serde gitPorcelain() {
+            return new GitPorcelain();
         }
 
-        private Release parseRelease(Matcher matcher) {
-            return release(
-                    Integer.parseInt(matcher.group("major")),
-                    Integer.parseInt(matcher.group("minor")),
-                    Integer.parseInt(matcher.group("patch"))
-            );
-        }
+        String serialize(Version version);
 
-        static final class IllegalVersionException extends RuntimeException {
+        Version parse(String versionString);
+
+        final class IllegalVersionException extends RuntimeException {
             public IllegalVersionException(String versionString) {
                 super(String.format("Unable to parse version string %s into one of the supported version formats.", versionString));
+            }
+        }
+
+        /**
+         * Version string parser supporting custom release and pre-release regexes assuming they have the required named
+         * capture groups.
+         *
+         * <p>This code is re-usable enough to carve out into something standalone.
+         */
+        record RegexParser(Pattern releasePattern, Pattern preReleasePattern) {
+
+            public Version parse(String versionString) {
+
+                Matcher releaseMatcher = releasePattern.matcher(versionString);
+
+                if (releaseMatcher.find()) {
+                    return parseRelease(releaseMatcher);
+                }
+
+                Matcher preReleaseMatcher = preReleasePattern.matcher(versionString);
+
+                if (preReleaseMatcher.find()) {
+                    Release release = parseRelease(preReleaseMatcher);
+
+                    PreRelease preRelease = preRelease(
+                            release,
+                            Integer.parseInt(preReleaseMatcher.group("distance")),
+                            preReleaseMatcher.group("commit")
+                    );
+
+                    return versionString.endsWith(".dirty") ? dirty(preRelease) : preRelease;
+                }
+
+                throw new IllegalVersionException(versionString);
+            }
+
+            private Release parseRelease(Matcher matcher) {
+                return release(
+                        Integer.parseInt(matcher.group("major")),
+                        Integer.parseInt(matcher.group("minor")),
+                        Integer.parseInt(matcher.group("patch"))
+                );
+            }
+        }
+
+        record Java() implements Serde {
+
+            private static final RegexParser PARSER = new RegexParser(
+                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$"),
+                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-alpha(?<distance>0|[1-9]\\d*)\\+(?<commit>[a-z]{7})(\\.dirty)?$")
+            );
+
+            @Override
+            public String serialize(Version version) {
+                return switch (version) {
+                    case Dirty d -> String.format("%s.dirty", serialize(d.version));
+                    case Release r -> String.format("%s.%s.%s", r.major, r.minor, r.patch);
+                    case PreRelease s -> String.format("%s-alpha%s+%s", serialize(s.release), s.distance, s.commit);
+                };
+            }
+
+            @Override
+            public Version parse(String versionString) {
+                return PARSER.parse(versionString);
+            }
+        }
+
+        record GitPorcelain() implements Serde {
+
+            private static final RegexParser PARSER = new RegexParser(
+                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$"),
+                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-(?<distance>0|[1-9]\\d*)-(?<commit>[a-z]{7})(\\.dirty)?$")
+            );
+
+            @Override
+            public String serialize(Version version) {
+                return switch (version) {
+                    case Dirty d -> String.format("%s.dirty", serialize(d.version));
+                    case Release r -> String.format("%s.%s.%s", r.major, r.minor, r.patch);
+                    case PreRelease s -> String.format("%s-%s-%s", serialize(s.release), s.distance, s.commit);
+                };
+            }
+
+            @Override
+            public Version parse(String versionString) {
+                return PARSER.parse(versionString);
             }
         }
     }

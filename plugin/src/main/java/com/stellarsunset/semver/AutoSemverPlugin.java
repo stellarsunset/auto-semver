@@ -33,7 +33,8 @@ public class AutoSemverPlugin implements Plugin<Project> {
         Repository repository = createRepository(project);
         Git git = new Git(repository);
 
-        tasks.register("release", IncrementVersionTask.class, git);
+        tasks.register("version", SetVersionTask.class, git);
+        tasks.register("release", ReleaseTask.class, git);
     }
 
     private Repository createRepository(Project project) {

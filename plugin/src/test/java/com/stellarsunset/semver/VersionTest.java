@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class VersionTest {
 
-    private static final Version.Serde SERDE = Version.serde();
+    private static final Version.Serde JAVA = Version.Serde.java();
+
+    private static final Version.Serde GIT = Version.Serde.gitPorcelain();
 
     @Test
     void testRelease() {
@@ -34,42 +36,42 @@ class VersionTest {
     }
 
     @Test
-    void testSerde_Release() {
+    void testJavaSerde_Release() {
         assertAll(
                 () -> assertEquals("1.0.0",
-                        SERDE.serialize(release(1, 0, 0)), "Serialize"),
+                        JAVA.serialize(release(1, 0, 0)), "Serialize"),
                 () -> assertEquals(release(1, 0, 0),
-                        SERDE.parse("1.0.0"), "Deserialize 1.0.0"),
+                        JAVA.parse("1.0.0"), "Deserialize 1.0.0"),
                 () -> assertEquals(release(0, 0, 1),
-                        SERDE.parse("0.0.1"), "Deserialize 0.0.1"),
+                        JAVA.parse("0.0.1"), "Deserialize 0.0.1"),
                 () -> assertEquals(release(0, 101, 9561),
-                        SERDE.parse("0.101.9561"), "Deserialize 0.101.9561")
+                        JAVA.parse("0.101.9561"), "Deserialize 0.101.9561")
         );
     }
 
     @Test
-    void testSerde_Snapshot() {
+    void testJavaSerde_Snapshot() {
         assertAll(
                 () -> assertEquals("1.0.0-alpha1+aaaaaaa",
-                        SERDE.serialize(preRelease(release(1, 0, 0), 1, "aaaaaaa")), "Serialize 1.0.0-alpha1+aaaaaaa"),
+                        JAVA.serialize(preRelease(release(1, 0, 0), 1, "aaaaaaa")), "Serialize 1.0.0-alpha1+aaaaaaa"),
                 () -> assertEquals("1.0.0-alpha105+aabbccz",
-                        SERDE.serialize(preRelease(release(1, 0, 0), 105, "aabbccz")), "Serialize 1.0.0-alpha105+aabbccz"),
+                        JAVA.serialize(preRelease(release(1, 0, 0), 105, "aabbccz")), "Serialize 1.0.0-alpha105+aabbccz"),
                 () -> assertEquals(preRelease(release(1, 0, 0), 105, "aabbccz"),
-                        SERDE.parse("1.0.0-alpha105+aabbccz"), "Deserialize 1.0.0-alpha105+aabbccz"),
+                        JAVA.parse("1.0.0-alpha105+aabbccz"), "Deserialize 1.0.0-alpha105+aabbccz"),
                 () -> assertThrows(Version.Serde.IllegalVersionException.class,
-                        () -> SERDE.parse("1.0.0-alpha105"), "Deserialize PreRelease without commit"),
+                        () -> JAVA.parse("1.0.0-alpha105"), "Deserialize PreRelease without commit"),
                 () -> assertThrows(Version.Serde.IllegalVersionException.class,
-                        () -> SERDE.parse("1.0.0+aabbccz"), "Deserialize PreRelease without distance")
+                        () -> JAVA.parse("1.0.0+aabbccz"), "Deserialize PreRelease without distance")
         );
     }
 
     @Test
-    void testSerde_Dirty() {
+    void testJavaSerde_Dirty() {
         assertAll(
                 () -> assertThrows(Version.Serde.IllegalVersionException.class,
-                        () -> SERDE.parse("1.0.0.dirty"), "Deserialize 1.0.0.dirty"),
+                        () -> JAVA.parse("1.0.0.dirty"), "Deserialize 1.0.0.dirty"),
                 () -> assertEquals(dirty(preRelease(release(1, 0, 0), 105, "aabbccz")),
-                        SERDE.parse("1.0.0-alpha105+aabbccz.dirty"), "Deserialize 1.0.0-alpha105+aabbccz.dirty")
+                        JAVA.parse("1.0.0-alpha105+aabbccz.dirty"), "Deserialize 1.0.0-alpha105+aabbccz.dirty")
         );
     }
 }
