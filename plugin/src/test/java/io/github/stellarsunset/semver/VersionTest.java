@@ -1,8 +1,8 @@
-package com.stellarsunset.semver;
+package io.github.stellarsunset.semver;
 
 import org.junit.jupiter.api.Test;
 
-import static com.stellarsunset.semver.Version.*;
+import static io.github.stellarsunset.semver.Version.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class VersionTest {
@@ -50,7 +50,7 @@ class VersionTest {
     }
 
     @Test
-    void testJavaSerde_Snapshot() {
+    void testJavaSerde_PreRelease() {
         assertAll(
                 () -> assertEquals("1.0.0-alpha1+aaaaaaa",
                         JAVA.serialize(preRelease(release(1, 0, 0), 1, "aaaaaaa")), "Serialize 1.0.0-alpha1+aaaaaaa"),
@@ -72,6 +72,46 @@ class VersionTest {
                         () -> JAVA.parse("1.0.0.dirty"), "Deserialize 1.0.0.dirty"),
                 () -> assertEquals(dirty(preRelease(release(1, 0, 0), 105, "aabbccz")),
                         JAVA.parse("1.0.0-alpha105+aabbccz.dirty"), "Deserialize 1.0.0-alpha105+aabbccz.dirty")
+        );
+    }
+
+    @Test
+    void testGitSerde_Release() {
+        assertAll(
+                () -> assertEquals("v1.0.0",
+                        GIT.serialize(release(1, 0, 0)), "Serialize"),
+                () -> assertEquals(release(1, 0, 0),
+                        GIT.parse("v1.0.0"), "Deserialize 1.0.0"),
+                () -> assertEquals(release(0, 0, 1),
+                        GIT.parse("v0.0.1"), "Deserialize 0.0.1"),
+                () -> assertEquals(release(0, 101, 9561),
+                        GIT.parse("v0.101.9561"), "Deserialize 0.101.9561")
+        );
+    }
+
+    @Test
+    void testGitSerde_PreRelease() {
+        assertAll(
+                () -> assertEquals("v1.0.0-1-aaaaaaa",
+                        GIT.serialize(preRelease(release(1, 0, 0), 1, "aaaaaaa")), "Serialize v1.0.0-1-aaaaaaa"),
+                () -> assertEquals("v1.0.0-105-aabbccz",
+                        GIT.serialize(preRelease(release(1, 0, 0), 105, "aabbccz")), "Serialize v1.0.0-105-aabbccz"),
+                () -> assertEquals(preRelease(release(1, 0, 0), 105, "aabbccz"),
+                        GIT.parse("v1.0.0-105-aabbccz"), "Deserialize v1.0.0-105-aabbccz"),
+                () -> assertThrows(Version.Serde.IllegalVersionException.class,
+                        () -> GIT.parse("v1.0.0-105"), "Deserialize PreRelease without commit"),
+                () -> assertThrows(Version.Serde.IllegalVersionException.class,
+                        () -> GIT.parse("v1.0.0-aabbccz"), "Deserialize PreRelease without distance")
+        );
+    }
+
+    @Test
+    void testGitSerde_Dirty() {
+        assertAll(
+                () -> assertThrows(Version.Serde.IllegalVersionException.class,
+                        () -> GIT.parse("v1.0.0.dirty"), "Deserialize v1.0.0.dirty"),
+                () -> assertEquals(dirty(preRelease(release(1, 0, 0), 105, "aabbccz")),
+                        GIT.parse("v1.0.0-105-aabbccz.dirty"), "Deserialize v1.0.0-105-aabbccz.dirty")
         );
     }
 }

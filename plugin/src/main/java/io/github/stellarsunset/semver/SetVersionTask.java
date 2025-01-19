@@ -1,4 +1,4 @@
-package com.stellarsunset.semver;
+package io.github.stellarsunset.semver;
 
 import org.eclipse.jgit.api.Git;
 import org.gradle.api.DefaultTask;
@@ -28,8 +28,9 @@ public class SetVersionTask extends DefaultTask {
         Project project = getProject();
 
         Version version = git.version();
-        project.setVersion(SERDE.serialize(version));
+        String versionString = SERDE.serialize(version);
 
-        getLogger().info("Project Version: {}", SERDE.serialize(version));
+        project.setVersion(versionString);
+        getLogger().lifecycle("Set Project Version: {}", versionString);
     }
 }

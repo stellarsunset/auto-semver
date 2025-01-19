@@ -1,4 +1,4 @@
-package com.stellarsunset.semver;
+package io.github.stellarsunset.semver;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,6 +11,13 @@ import static com.google.common.base.Preconditions.checkArgument;
  * <p>The version interface only guarantees there is a string format for each version through {@link Serde}.
  */
 public sealed interface Version {
+
+    /**
+     * The initial release version for a project if there are no tags already present.
+     */
+    static Release initial() {
+        return new Release(0, 0, 1);
+    }
 
     /**
      * Handle for a release version of software containing the standard semantic versioning components one would expect.
@@ -54,10 +61,6 @@ public sealed interface Version {
             checkArgument(patch >= 0, "Patch version must be non-negative: %s", patch);
         }
 
-        public Release initial() {
-            return new Release(0, 0, 1);
-        }
-
         public Release nextMajor() {
             return new Release(major + 1, 0, 0);
         }
@@ -93,6 +96,8 @@ public sealed interface Version {
         /**
          * Returns a new {@link Serde} for versions that is compliant with the SemVer specification, intended for use in
          * Java applications.
+         *
+         * <p>Use this as your Gradle build version.
          */
         static Serde java() {
             return new Java();
@@ -101,6 +106,8 @@ public sealed interface Version {
         /**
          * Returns a new {@link Serde} for versions suitable for reading and writing them in the format the git-describe
          * command in the porcelain API provides.
+         *
+         * <p>Use this for your git tags.
          */
         static Serde gitPorcelain() {
             return new GitPorcelain();
@@ -183,15 +190,15 @@ public sealed interface Version {
         record GitPorcelain() implements Serde {
 
             private static final RegexParser PARSER = new RegexParser(
-                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$"),
-                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-(?<distance>0|[1-9]\\d*)-(?<commit>[a-z]{7})(\\.dirty)?$")
+                    Pattern.compile("^v(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$"),
+                    Pattern.compile("^v(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-(?<distance>0|[1-9]\\d*)-(?<commit>[a-z]{7})(\\.dirty)?$")
             );
 
             @Override
             public String serialize(Version version) {
                 return switch (version) {
                     case Dirty d -> String.format("%s.dirty", serialize(d.version));
-                    case Release r -> String.format("%s.%s.%s", r.major, r.minor, r.patch);
+                    case Release r -> String.format("v%s.%s.%s", r.major, r.minor, r.patch);
                     case PreRelease s -> String.format("%s-%s-%s", serialize(s.release), s.distance, s.commit);
                 };
             }

@@ -7,7 +7,7 @@ Automatic semantic version generation for Gradle projects based on annotated git
 
 ## Motivation
 
-There are a thousand of these repositories out there with exposing configurability for a large swath of different semver
+There are a variety of these repositories out there with exposing configurability for a large swath of different semver
 formats and styles.
 
 However, writing one of these plugins isn't challenging, and it allows you to:
@@ -15,14 +15,16 @@ However, writing one of these plugins isn't challenging, and it allows you to:
 1. Minimize the required configuration across projects
 2. Bake in exactly the versioning semantics you want
 
-So why not experiment with Gradle plugins and write your own for use in your projects?
+This plugin generates only two additional tasks, and requires zero additional configuration.
 
 ## Usage
 
 Add the plugin to your build from the Gradle plugin portal.
 
 ```kotlin
-/* Blah */
+plugins {
+    id('io.github.stellarsunset.auto-semver') version "0.0.1"
+}
 ```
 
 This plugin adds a transparent Gradle task that will dynamically compute the runtime version of the project based on the
@@ -33,7 +35,9 @@ last [annotated Git tag](https://git-scm.com/book/en/v2/Git-Basics-Tagging) in t
 $ git tag -a v1.4.1 -m "Tag release 1.4.1"
 
 # Subsequent builds will read this tag to determine project version
-$ ./gradlew 
+$ ./gradlew build
+> Task :setVersion
+Set Project Version: 0.0.1
 ```
 
 For convenience, it also exposes a task that will auto-increment and commit a new annotated tag to the repo based on the
@@ -44,7 +48,7 @@ last annotated tag and the desired version component to increment.
 # and default commit message
 $ ./gradlew release -Pmajor
 
-# Add a custom commit message if for some reason its desparately needed...
+# Add a custom commit message if you want...
 $ ./gradlew release -Pmajor -Pmessage "Some custom commit message..."
 ```
 

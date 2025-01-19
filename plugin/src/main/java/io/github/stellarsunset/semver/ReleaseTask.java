@@ -1,4 +1,4 @@
-package com.stellarsunset.semver;
+package io.github.stellarsunset.semver;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Ref;
@@ -9,6 +9,7 @@ import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
 import java.util.Map;
+import java.util.Optional;
 
 public class ReleaseTask extends DefaultTask {
 
@@ -38,9 +39,11 @@ public class ReleaseTask extends DefaultTask {
         Version.Release previous = Version.releasePart(version);
 
         Version.Release next = options.nextVersion(previous);
-        Ref ref = git.version(next);
 
-        logger.info("Tagged commit {} as release {}", ref.getName(), SERDE.serialize(next));
+        Ref ref = options.message().map(m -> git.version(next, m))
+                .orElseGet(() -> git.version(next));
+
+        logger.lifecycle("Tagged commit {} as release {}", ref.getName(), SERDE.serialize(next));
     }
 
     private record CliOptions(Map<String, ?> properties) {
@@ -65,6 +68,10 @@ public class ReleaseTask extends DefaultTask {
             } else {
                 return previous.nextPatch();
             }
+        }
+
+        Optional<String> message() {
+            return Optional.ofNullable(properties.get("message")).map(o -> o instanceof String s ? s : null);
         }
     }
 }

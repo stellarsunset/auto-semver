@@ -1,5 +1,5 @@
 plugins {
-    `java-gradle-plugin`
+    id("com.gradle.plugin-publish") version "1.3.0"
     jacoco
 }
 
@@ -21,10 +21,16 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+group = "io.github.stellarsunset"
+
 gradlePlugin {
+    website.set("https://github.com/stellarsunset/auto-semver")
+    vcsUrl.set("https://github.com/stellarsunset/auto-semver")
     val autoSemver by plugins.creating {
-        id = "com.stellarsunset.semver.autosemver"
-        implementationClass = "com.stellarsunset.semver.AutoSemverPlugin"
+        id = "io.github.stellarsunset.auto-semver"
+        implementationClass = "io.github.stellarsunset.semver.AutoSemverPlugin"
+        displayName = "Automatic semantic versioning plugin"
+        description = "Lightweight auto semantic versioning plugin based on annotated git tags."
     }
 }
 
