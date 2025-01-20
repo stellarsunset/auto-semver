@@ -3,29 +3,27 @@
  */
 package io.github.stellarsunset.semver;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.Severity;
-import org.gradle.api.tasks.TaskProvider;
+import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
-import java.util.List;
-import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
 @SuppressWarnings("UnstableApiUsage")
 public class AutoSemverPlugin implements Plugin<Project> {
 
+    private static final Version.Serde JAVA = Version.Serde.java();
+
+    private final ExecOperations execOperations;
     private final ProblemReporter problemReporter;
 
     @Inject
-    public AutoSemverPlugin(Problems problems) {
+    public AutoSemverPlugin(ExecOperations execOperations, Problems problems) {
+        this.execOperations = requireNonNull(execOperations);
         this.problemReporter = requireNonNull(problems).getReporter();
     }
 
@@ -33,31 +31,12 @@ public class AutoSemverPlugin implements Plugin<Project> {
     public void apply(Project project) {
         var tasks = project.getTasks();
 
-        Repository repository = createRepository(project);
-        Git git = new Git(repository);
+        Git git = new Git(project.getProjectDir(), execOperations, problemReporter);
 
-        tasks.register("setVersion", SetVersionTask.class, git);
+        Version version = git.version();
+        project.setVersion(JAVA.serialize(version));
 
-        TaskProvider<ReleaseTask> release = tasks.register("release", ReleaseTask.class, git);
-        release.configure(task -> task.setDependsOn(List.of("setVersion")));
-
-        Optional.ofNullable(tasks.findByName("build"))
-                .ifPresent(task -> task.setDependsOn(List.of("setVersion")));
-    }
-
-    private Repository createRepository(Project project) {
-        try {
-            return new FileRepositoryBuilder()
-                    .setGitDir(project.getProjectDir())
-                    .build();
-        } catch (Exception e) {
-            // https://docs.gradle.org/current/samples/sample_problems_api_usage.html
-            throw problemReporter.throwing(
-                    problem -> problem
-                            .id("unable-to-read-git-repository", "Root project directory not a Git repository")
-                            .severity(Severity.ERROR)
-                            .solution("Please ensure your git repository is rooted in the same location as the base project directory.")
-            );
-        }
+        tasks.register("release", ReleaseTask.class, git)
+                .configure(task -> task.setVersion(version));
     }
 }

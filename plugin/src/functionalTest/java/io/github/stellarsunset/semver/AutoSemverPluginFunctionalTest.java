@@ -23,7 +23,7 @@ class AutoSemverPluginFunctionalTest {
     @Test
     void testSetVersion(@TempDir File projectDir) {
         try (Git git = initializeProjectSafely(projectDir)) {
-            BuildResult result = runGradle(projectDir, "setVersion");
+            BuildResult result = runGradle(projectDir, "showVersion");
             assertTrue(result.getOutput().contains("Project Version: 0.0.1"));
         }
     }
@@ -34,7 +34,7 @@ class AutoSemverPluginFunctionalTest {
             BuildResult release = runGradle(projectDir, "release", "-Pminor");
             assertTrue(release.getOutput().contains("release 0.1.0"));
 
-            BuildResult version = runGradle(projectDir, "setVersion");
+            BuildResult version = runGradle(projectDir, "showVersion");
             assertTrue(version.getOutput().contains("Project Version: 0.1.0"));
         }
     }
@@ -71,6 +71,13 @@ class AutoSemverPluginFunctionalTest {
         String content = """
                 plugins {
                   id('io.github.stellarsunset.auto-semver')
+                }
+                
+                tasks.register("showVersion") {
+                    inputs.property("version", project.version)
+                    doLast {
+                        println("Project Version: ${inputs.properties["version"]}")
+                    }
                 }
                 """;
 

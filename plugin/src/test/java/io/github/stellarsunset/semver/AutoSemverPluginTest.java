@@ -6,20 +6,23 @@ package io.github.stellarsunset.semver;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
+import java.io.File;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class AutoSemverPluginTest {
     @Test
-    void pluginRegistersCorrectTasks() {
+    void pluginRegistersCorrectTasks(@TempDir File projectDir) {
 
-        Project project = ProjectBuilder.builder().build();
+        Project project = ProjectBuilder.builder()
+                .withProjectDir(projectDir)
+                .build();
+
+        GitHelpers.initializeProjectSafely(projectDir);
+
         project.getPlugins().apply("io.github.stellarsunset.auto-semver");
-
-        assertAll(
-                () -> assertNotNull(project.getTasks().findByName("setVersion")),
-                () -> assertNotNull(project.getTasks().findByName("release"))
-        );
+        assertNotNull(project.getTasks().findByName("release"));
     }
 }

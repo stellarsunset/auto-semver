@@ -4,7 +4,6 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
     id("com.gradle.plugin-publish") version "1.3.0"
     jacoco
-    id("io.github.stellarsunset.auto-semver") version "0.0.1"
     id("com.vanniktech.maven.publish") version "0.28.0"
 }
 
@@ -20,8 +19,8 @@ repositories {
 
 dependencies {
     implementation(libs.guava)
-    implementation(libs.jgit)
 
+    testImplementation(libs.jgit)
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

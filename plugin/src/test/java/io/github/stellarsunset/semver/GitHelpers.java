@@ -9,20 +9,20 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 
-class GitWTest {
+class GitHelpers {
 
-    private Git initializeProjectSafely(File projectDir) {
-        try {
-            return initializeProject(projectDir);
+    static void initializeProjectSafely(File projectDir) {
+        try (Git git = initializeProject(projectDir)) {
+            // Do nothing
         } catch (Exception e) {
-            return Assertions.fail(e);
+            Assertions.fail(e);
         }
     }
 
     /**
      * Initialize a new gradle project + git repo in the provided directory.
      */
-    private Git initializeProject(File projectDir) throws Exception {
+    static Git initializeProject(File projectDir) throws Exception {
 
         Git main = Git.init()
                 .setGitDir(projectDir)
@@ -41,7 +41,7 @@ class GitWTest {
         return main;
     }
 
-    private void writeString(File file, String string) throws IOException {
+    static void writeString(File file, String string) throws IOException {
         try (Writer writer = new FileWriter(file)) {
             writer.write(string);
         }

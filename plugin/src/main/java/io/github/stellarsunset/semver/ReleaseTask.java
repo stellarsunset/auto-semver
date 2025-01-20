@@ -1,30 +1,41 @@
 package io.github.stellarsunset.semver;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.Ref;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.util.Objects.requireNonNull;
+
 public class ReleaseTask extends DefaultTask {
 
     private static final Version.Serde SERDE = Version.Serde.java();
 
-    private final GitW git;
+    private final Git git;
+    private Version version;
 
     @Inject
     public ReleaseTask(Git git) {
-        this.git = new GitW(git);
+        this.git = requireNonNull(git);
     }
 
     @Override
     public String getDescription() {
         return "Tag the current commit as a release commit with the provided increment (default: Patch)";
+    }
+
+    @Input
+    public Version getVersion() {
+        return version;
+    }
+
+    public void setVersion(Version version) {
+        this.version = version;
     }
 
     // https://docs.gradle.org/current/userguide/custom_tasks.html
@@ -35,15 +46,13 @@ public class ReleaseTask extends DefaultTask {
         Project project = getProject();
         CliOptions options = new CliOptions(project.getProperties());
 
-        Version version = SERDE.parse((String) project.getVersion());
         Version.Release previous = Version.releasePart(version);
-
         Version.Release next = options.nextVersion(previous);
 
-        Ref ref = options.message().map(m -> git.version(next, m))
-                .orElseGet(() -> git.version(next));
+        options.message().map(m -> git.tagVersion(next, m))
+                .orElseGet(() -> git.tagVersion(next));
 
-        logger.lifecycle("Tagged commit {} as release {}", ref.getName(), SERDE.serialize(next));
+        logger.lifecycle("Tagged new release {}", SERDE.serialize(next));
     }
 
     private record CliOptions(Map<String, ?> properties) {
