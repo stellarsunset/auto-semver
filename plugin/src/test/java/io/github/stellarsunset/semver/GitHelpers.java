@@ -11,26 +11,50 @@ import java.io.Writer;
 
 class GitHelpers {
 
-    static void initializeProjectSafely(File projectDir) {
-        try (Git git = initializeProject(projectDir)) {
-            // Do nothing
+    static Git initializeRepositorySafely(File projectDir) {
+        try {
+            return initializeRepository(projectDir);
         } catch (Exception e) {
-            Assertions.fail(e);
+            return Assertions.fail(e);
         }
     }
 
     /**
-     * Initialize a new gradle project + git repo in the provided directory.
+     * Initialize a new gradle project w/ plugin configured.
      */
-    static Git initializeProject(File projectDir) throws Exception {
+    static void initializeProject(File projectDir) throws IOException {
+        File buildFile = new File(projectDir, "build.gradle");
+
+        String content = """
+                plugins {
+                  id('io.github.stellarsunset.auto-semver')
+                }
+                
+                tasks.register("showVersion") {
+                    inputs.property("version", project.version)
+                    doLast {
+                        println("Project Version: ${inputs.properties["version"]}")
+                    }
+                }
+                """;
+
+        writeString(buildFile, content);
+
+        File settingsFile = new File(projectDir, "settings.gradle");
+        writeString(settingsFile, "");
+    }
+
+    /**
+     * Initialize and commit the initial configuration for our project as a git repository in the directory.
+     */
+    static Git initializeRepository(File projectDir) throws Exception {
 
         Git main = Git.init()
                 .setGitDir(projectDir)
                 .setInitialBranch("main")
                 .call();
 
-        File testFile = new File(projectDir, "test.txt");
-        writeString(testFile, "");
+        initializeProject(projectDir);
 
         RevCommit commit = main.commit()
                 .setAuthor("junit", "junit@autosemver.github.com")

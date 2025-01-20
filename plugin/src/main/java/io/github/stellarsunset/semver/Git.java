@@ -38,7 +38,7 @@ public record Git(File projectDir, ExecOperations exec, ProblemReporter reporter
                     yield Version.initial();
                 }
                 throw reporter.throwing(spec -> spec
-                        .id("unable-to-describe-latest-tag", "Unable to read the latest Git tag from the repository.")
+                        .id("unable-to-describe-latest-tag", "Unable to read latest version tag.")
                         .severity(Severity.ERROR)
                         .details("Unable to parse the tag for the latest commit on the branch.")
                         .solution("Ensure the repository exists and has at least one commit.")
@@ -60,9 +60,9 @@ public record Git(File projectDir, ExecOperations exec, ProblemReporter reporter
             case Result.Success _ -> this;
             case Result.Failure failure -> throw reporter.throwing(
                     spec -> spec
-                            .id("unable-to-tag-release", "Unable to tag the current commit as the next release.")
+                            .id("unable-to-tag-release", "Unable to tag release.")
                             .severity(Severity.ERROR)
-                            .details("Unable to commit the annotated tag containing the next release version to the branch.")
+                            .details(failure.stderr)
                             .solution("Ensure the current commit is not dirty and is not already tagged.")
                             .withException(failure.e)
             );

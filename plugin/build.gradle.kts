@@ -50,20 +50,20 @@ val functionalTest by tasks.registering(Test::class) {
 
 gradlePlugin.testSourceSets.add(functionalTestSourceSet)
 
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.named<Task>("check") {
+    dependsOn(functionalTest)
+    finalizedBy(tasks.jacocoTestReport)
+}
+
 tasks.jacocoTestReport {
     reports {
         xml.required = true
         html.required = true
     }
-}
-
-tasks.test {
-    useJUnitPlatform()
-    finalizedBy(tasks.jacocoTestReport)
-}
-
-tasks.named<Task>("check") {
-    dependsOn(functionalTest)
 }
 
 tasks.javadoc {

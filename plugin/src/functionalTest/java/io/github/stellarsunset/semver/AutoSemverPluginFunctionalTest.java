@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.UnexpectedBuildFailure;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -16,13 +17,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AutoSemverPluginFunctionalTest {
 
     @Test
+    void testNotAGitDirectory(@TempDir File projectDir) throws IOException {
+        initializeProject(projectDir);
+        assertThrows(AssertionError.class, () -> runGradle(projectDir, "showVersion"),
+                "Show Version should fail, not a Git repository.");
+    }
+
+    @Test
     void testSetVersion(@TempDir File projectDir) {
-        try (Git git = initializeProjectSafely(projectDir)) {
+        try (Git git = initializeRepositorySafely(projectDir)) {
             BuildResult result = runGradle(projectDir, "showVersion");
             assertTrue(result.getOutput().contains("Project Version: 0.0.1"));
         }
@@ -30,7 +39,7 @@ class AutoSemverPluginFunctionalTest {
 
     @Test
     void testRelease(@TempDir File projectDir) {
-        try (Git git = initializeProjectSafely(projectDir)) {
+        try (Git git = initializeRepositorySafely(projectDir)) {
             BuildResult release = runGradle(projectDir, "release", "-Pminor");
             assertTrue(release.getOutput().contains("release 0.1.0"));
 
@@ -40,32 +49,30 @@ class AutoSemverPluginFunctionalTest {
     }
 
     private BuildResult runGradle(File projectDir, String... arguments) {
-        GradleRunner runner = GradleRunner.create();
-        runner.forwardOutput();
-        runner.withPluginClasspath();
-        runner.withArguments(arguments);
-        runner.withProjectDir(projectDir);
-        return runner.build();
+        try {
+            GradleRunner runner = GradleRunner.create();
+            runner.forwardOutput();
+            runner.withPluginClasspath();
+            runner.withArguments(arguments);
+            runner.withProjectDir(projectDir);
+            return runner.build();
+        } catch (UnexpectedBuildFailure e) {
+            return Assertions.fail(String.format("Unexpected error running Gradle subprocess: %s", e.getMessage()), e);
+        }
     }
 
-    private Git initializeProjectSafely(File projectDir) {
+    private Git initializeRepositorySafely(File projectDir) {
         try {
-            return initializeProject(projectDir);
+            return initializeRepository(projectDir);
         } catch (Exception e) {
             return Assertions.fail(e);
         }
     }
 
     /**
-     * Initialize a new gradle project + git repo in the provided directory.
+     * Initialize a new gradle project w/ plugin configured.
      */
-    private Git initializeProject(File projectDir) throws Exception {
-
-        Git main = Git.init()
-                .setGitDir(projectDir)
-                .setInitialBranch("main")
-                .call();
-
+    private void initializeProject(File projectDir) throws IOException {
         File buildFile = new File(projectDir, "build.gradle");
 
         String content = """
@@ -85,6 +92,19 @@ class AutoSemverPluginFunctionalTest {
 
         File settingsFile = new File(projectDir, "settings.gradle");
         writeString(settingsFile, "");
+    }
+
+    /**
+     * Initialize and commit the initial configuration for our project as a git repository in the directory.
+     */
+    private Git initializeRepository(File projectDir) throws Exception {
+
+        Git main = Git.init()
+                .setGitDir(projectDir)
+                .setInitialBranch("main")
+                .call();
+
+        initializeProject(projectDir);
 
         RevCommit commit = main.commit()
                 .setAuthor("junit", "junit@autosemver.github.com")

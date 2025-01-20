@@ -3,6 +3,7 @@
  */
 package io.github.stellarsunset.semver;
 
+import org.eclipse.jgit.api.Git;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.Test;
@@ -20,9 +21,9 @@ class AutoSemverPluginTest {
                 .withProjectDir(projectDir)
                 .build();
 
-        GitHelpers.initializeProjectSafely(projectDir);
-
-        project.getPlugins().apply("io.github.stellarsunset.auto-semver");
-        assertNotNull(project.getTasks().findByName("release"));
+        try (Git git = GitHelpers.initializeRepositorySafely(projectDir)) {
+            project.getPlugins().apply("io.github.stellarsunset.auto-semver");
+            assertNotNull(project.getTasks().findByName("release"));
+        }
     }
 }
