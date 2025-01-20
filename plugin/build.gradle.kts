@@ -1,6 +1,10 @@
+import com.vanniktech.maven.publish.GradlePublishPlugin
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     id("com.gradle.plugin-publish") version "1.3.0"
     jacoco
+    id("com.vanniktech.maven.publish") version "0.28.0"
 }
 
 repositories {
@@ -21,8 +25,6 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-group = "io.github.stellarsunset"
-
 gradlePlugin {
     website.set("https://github.com/stellarsunset/auto-semver")
     vcsUrl.set("https://github.com/stellarsunset/auto-semver")
@@ -30,7 +32,7 @@ gradlePlugin {
         id = "io.github.stellarsunset.auto-semver"
         implementationClass = "io.github.stellarsunset.semver.AutoSemverPlugin"
         displayName = "Automatic semantic versioning plugin"
-        description = "Lightweight auto semantic versioning plugin based on annotated git tags."
+        description = "Lightweight automatic semantic versioning plugin based on annotated git tags."
     }
 }
 
@@ -66,4 +68,41 @@ tasks.named<Task>("check") {
 
 tasks.javadoc {
     options.outputLevel = JavadocOutputLevel.QUIET
+}
+
+// TODO: swap to inferring this using itself
+version = "0.0.1"
+
+mavenPublishing {
+    configure(GradlePublishPlugin())
+
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+
+    coordinates("io.github.stellarsunset", "auto-semver", project.version.toString())
+
+    pom {
+        name = "auto-semver"
+        description = "Lightweight automatic semantic versioning plugin based on annotated git tags."
+        url = "https://github.com/stellarsunset/auto-semver"
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
+        developers {
+            developer {
+                id = "stellarsunset"
+                name = "Alex Cramer"
+                email = "stellarsunset@proton.me"
+            }
+        }
+        scm {
+            connection = "scm:git:git://github.com/stellarsunset/auto-semver.git"
+            developerConnection = "scm:git:ssh://github.com/stellarsunset/auto-semver.git"
+            url = "http://github.com/stellarsunset/auto-semver"
+        }
+    }
+
+    signAllPublications()
 }
