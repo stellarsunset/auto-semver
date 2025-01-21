@@ -40,7 +40,7 @@ public record Git(File projectDir, ExecOperations exec, ProblemReporter reporter
                 throw reporter.throwing(spec -> spec
                         .id("unable-to-describe-latest-tag", "Unable to read latest version tag.")
                         .severity(Severity.ERROR)
-                        .details("Unable to parse the tag for the latest commit on the branch.")
+                        .details(failure.stderr)
                         .solution("Ensure the repository exists and has at least one commit.")
                         .withException(failure.e)
                 );

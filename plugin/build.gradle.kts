@@ -4,6 +4,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
     id("com.gradle.plugin-publish") version "1.3.0"
     jacoco
+    id("io.github.stellarsunset.auto-semver") version "0.0.3"
     id("com.vanniktech.maven.publish") version "0.28.0"
 }
 
@@ -75,7 +76,7 @@ mavenPublishing {
 
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
 
-    coordinates("io.github.stellarsunset", "auto-semver", "0.0.3")
+    coordinates("io.github.stellarsunset", "auto-semver", "0.0.4")
 
     pom {
         name = "auto-semver"
