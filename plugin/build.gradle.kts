@@ -75,7 +75,7 @@ mavenPublishing {
 
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
 
-    coordinates("io.github.stellarsunset", "auto-semver", "0.0.3")
+    coordinates("io.github.stellarsunset", "auto-semver", "0.0.5")
 
     pom {
         name = "auto-semver"
