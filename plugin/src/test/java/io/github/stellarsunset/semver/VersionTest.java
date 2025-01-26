@@ -111,7 +111,7 @@ class VersionTest {
                 () -> assertThrows(Version.Serde.IllegalVersionException.class,
                         () -> GIT.parse("v1.0.0.dirty"), "Deserialize v1.0.0.dirty"),
                 () -> assertEquals(dirty(preRelease(release(1, 0, 0), 105, "aabbccz")),
-                        GIT.parse("v1.0.0-105-aabbccz.dirty"), "Deserialize v1.0.0-105-aabbccz.dirty")
+                        GIT.parse("v1.0.0-105-gaabbccz.dirty"), "Deserialize v1.0.0-105-aabbccz.dirty")
         );
     }
 }

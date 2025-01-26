@@ -15,7 +15,7 @@ However, writing one of these plugins isn't challenging, and it allows you to:
 1. Minimize the required configuration across projects
 2. Bake in exactly the versioning semantics you want
 
-This plugin generates only two additional tasks, and requires zero additional configuration.
+This plugin generates only one additional task, and requires zero additional configuration.
 
 ## Usage
 
@@ -42,8 +42,8 @@ For convenience, it also exposes a task that will auto-increment and commit a ne
 last annotated tag and the desired version component to increment.
 
 ```bash
-# Commit a new annotated tag on the current commit with an incremented major release version 
-# and default commit message
+# Commit a new annotated tag on the current commit with an incremented major release 
+# version and default commit message
 $ ./gradlew release -Pmajor
 
 # Add a custom commit message if you want...
@@ -51,7 +51,10 @@ $ ./gradlew release -Pmajor -Pmessage "Some custom commit message..."
 ```
 
 To register a custom task that will show the inferred version
+
 ```kotlin
+// The plugin sets the project.version when it's applied, and therefore the correct 
+// version is available for reference in all build.gradle.kts configured tasks
 tasks.register("showVersion") {
     inputs.property("version", project.version)
     doLast {
@@ -59,6 +62,3 @@ tasks.register("showVersion") {
     }
 }
 ```
-
-This repository uses itself for versioning, see the [justfile](./justfile) at the root of the project for a recommended
-usage.
