@@ -36,8 +36,6 @@ $ git tag -a v1.4.1 -m "Tag release 1.4.1"
 
 # Subsequent builds will read this tag to determine project version
 $ ./gradlew build
-> Task :setVersion
-Set Project Version: 0.0.1
 ```
 
 For convenience, it also exposes a task that will auto-increment and commit a new annotated tag to the repo based on the
@@ -50,6 +48,16 @@ $ ./gradlew release -Pmajor
 
 # Add a custom commit message if you want...
 $ ./gradlew release -Pmajor -Pmessage "Some custom commit message..."
+```
+
+To register a custom task that will show the inferred version
+```kotlin
+tasks.register("showVersion") {
+    inputs.property("version", project.version)
+    doLast {
+        println("Project Version: ${inputs.properties["version"]}")
+    }
+}
 ```
 
 This repository uses itself for versioning, see the [justfile](./justfile) at the root of the project for a recommended

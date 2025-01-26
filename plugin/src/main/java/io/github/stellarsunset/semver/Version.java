@@ -169,7 +169,7 @@ public sealed interface Version {
 
             private static final RegexParser PARSER = new RegexParser(
                     Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$"),
-                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-alpha(?<distance>0|[1-9]\\d*)\\+(?<commit>[a-z]{7})(\\.dirty)?$")
+                    Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-alpha(?<distance>0|[1-9]\\d*)\\+(?<commit>[a-z0-9]{7})(\\.dirty)?$")
             );
 
             @Override
@@ -191,7 +191,7 @@ public sealed interface Version {
 
             private static final RegexParser PARSER = new RegexParser(
                     Pattern.compile("^v(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)$"),
-                    Pattern.compile("^v(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-(?<distance>0|[1-9]\\d*)-(?<commit>[a-z]{7})(\\.dirty)?$")
+                    Pattern.compile("^v(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)-(?<distance>0|[1-9]\\d*)-g(?<commit>[a-z0-9]{7})(\\.dirty)?$")
             );
 
             @Override
@@ -199,7 +199,7 @@ public sealed interface Version {
                 return switch (version) {
                     case Dirty d -> String.format("%s.dirty", serialize(d.version));
                     case Release r -> String.format("v%s.%s.%s", r.major, r.minor, r.patch);
-                    case PreRelease s -> String.format("%s-%s-%s", serialize(s.release), s.distance, s.commit);
+                    case PreRelease s -> String.format("%s-%s-g%s", serialize(s.release), s.distance, s.commit);
                 };
             }
 

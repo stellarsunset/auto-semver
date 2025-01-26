@@ -92,16 +92,16 @@ class VersionTest {
     @Test
     void testGitSerde_PreRelease() {
         assertAll(
-                () -> assertEquals("v1.0.0-1-aaaaaaa",
-                        GIT.serialize(preRelease(release(1, 0, 0), 1, "aaaaaaa")), "Serialize v1.0.0-1-aaaaaaa"),
-                () -> assertEquals("v1.0.0-105-aabbccz",
-                        GIT.serialize(preRelease(release(1, 0, 0), 105, "aabbccz")), "Serialize v1.0.0-105-aabbccz"),
+                () -> assertEquals("v1.0.0-1-gaaaaaa1",
+                        GIT.serialize(preRelease(release(1, 0, 0), 1, "aaaaaa1")), "Serialize v1.0.0-1-aaaaaaa"),
+                () -> assertEquals("v1.0.0-105-ga1bbccz",
+                        GIT.serialize(preRelease(release(1, 0, 0), 105, "a1bbccz")), "Serialize v1.0.0-105-aabbccz"),
                 () -> assertEquals(preRelease(release(1, 0, 0), 105, "aabbccz"),
-                        GIT.parse("v1.0.0-105-aabbccz"), "Deserialize v1.0.0-105-aabbccz"),
+                        GIT.parse("v1.0.0-105-gaabbccz"), "Deserialize v1.0.0-105-gaabbccz"),
                 () -> assertThrows(Version.Serde.IllegalVersionException.class,
                         () -> GIT.parse("v1.0.0-105"), "Deserialize PreRelease without commit"),
                 () -> assertThrows(Version.Serde.IllegalVersionException.class,
-                        () -> GIT.parse("v1.0.0-aabbccz"), "Deserialize PreRelease without distance")
+                        () -> GIT.parse("v1.0.0-gaabbccz"), "Deserialize PreRelease without distance")
         );
     }
 
