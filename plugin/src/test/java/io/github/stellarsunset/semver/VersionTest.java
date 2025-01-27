@@ -12,6 +12,16 @@ class VersionTest {
     private static final Version.Serde GIT = Version.Serde.gitPorcelain();
 
     @Test
+    void testReleasePart() {
+        Release release = Version.release(0, 0, 1);
+        assertAll(
+                () -> assertEquals(release, Version.releasePart(release), "Release"),
+                () -> assertEquals(release, Version.releasePart(Version.preRelease(release, 1, "aaaaaaa")), "PreRelease"),
+                () -> assertEquals(release, Version.releasePart(Version.dirty(release)), "Dirty")
+        );
+    }
+
+    @Test
     void testRelease() {
         assertAll(
                 () -> assertThrows(IllegalArgumentException.class, () -> release(0, 0, -1), "Patch"),

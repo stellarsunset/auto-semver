@@ -50,7 +50,7 @@ public sealed interface Version {
         return switch (version) {
             case Version.Release r -> r;
             case Version.PreRelease p -> p.release();
-            case Version.Dirty d -> releasePart(version);
+            case Version.Dirty d -> releasePart(d.version());
         };
     }
 
