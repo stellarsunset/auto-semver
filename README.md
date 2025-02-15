@@ -27,7 +27,7 @@ plugins {
 }
 ```
 
-This plugin adds a transparent Gradle task that will dynamically compute the runtime version of the project based on the
+At configuration time this plugin dynamically computes the runtime version of the project based on the
 last [annotated Git tag](https://git-scm.com/book/en/v2/Git-Basics-Tagging) in the repo.
 
 ```bash
