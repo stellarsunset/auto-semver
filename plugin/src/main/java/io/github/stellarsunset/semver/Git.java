@@ -1,5 +1,7 @@
 package io.github.stellarsunset.semver;
 
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Severity;
 import org.gradle.process.ExecOperations;
@@ -19,6 +21,8 @@ import java.util.List;
 @SuppressWarnings("UnstableApiUsage")
 public record Git(File projectDir, ExecOperations exec, ProblemReporter reporter) {
 
+    private static final ProblemGroup GIT = ProblemGroup.create("git", "Issues working with local git.");
+
     private static final Version.Serde SERDE = Version.Serde.gitPorcelain();
 
     /**
@@ -37,8 +41,8 @@ public record Git(File projectDir, ExecOperations exec, ProblemReporter reporter
                 if (failure.stderr.trim().equals(NO_TAGS)) {
                     yield Version.initial();
                 }
-                throw reporter.throwing(spec -> spec
-                        .id("unable-to-describe-latest-tag", "Unable to read latest version tag.")
+                var problemId = ProblemId.create("unable-to-describe-latest-tag", "Unable to read latest version tag.", GIT);
+                throw reporter.throwing(failure.e, problemId, spec -> spec
                         .severity(Severity.ERROR)
                         .details(failure.stderr)
                         .solution("Ensure the repository exists and has at least one commit.")
@@ -59,8 +63,9 @@ public record Git(File projectDir, ExecOperations exec, ProblemReporter reporter
         return switch (runCommand("git", "tag", "-a", SERDE.serialize(version), "-m", message)) {
             case Result.Success _ -> this;
             case Result.Failure failure -> throw reporter.throwing(
+                    failure.e,
+                    ProblemId.create("unable-to-tag-release", "Unable to tag release.", GIT),
                     spec -> spec
-                            .id("unable-to-tag-release", "Unable to tag release.")
                             .severity(Severity.ERROR)
                             .details(failure.stderr)
                             .solution("Ensure the current commit is not dirty and is not already tagged.")
