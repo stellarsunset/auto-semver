@@ -73,7 +73,7 @@ tasks.javadoc {
 mavenPublishing {
     configure(GradlePublishPlugin())
 
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    publishToMavenCentral(automaticRelease = true)
 
     coordinates("io.github.stellarsunset", "auto-semver", "1.0.0")
 
