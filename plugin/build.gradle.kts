@@ -2,7 +2,7 @@ import com.vanniktech.maven.publish.GradlePublishPlugin
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
-    id("com.gradle.plugin-publish") version "1.3.0"
+    id("com.gradle.plugin-publish") version "1.3.1"
     jacoco
     id("com.vanniktech.maven.publish") version "0.28.0"
 }
