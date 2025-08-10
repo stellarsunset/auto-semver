@@ -6,3 +6,8 @@ default:
 test:
   ./gradlew test
   ./gradlew functionalTest
+
+release type='patch': test
+  ./gradlew release -P{{type}}
+  git push origin tag $(git describe --tags --abbrev=0)
+  ./gradlew publish
