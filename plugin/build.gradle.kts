@@ -1,5 +1,4 @@
 import com.vanniktech.maven.publish.GradlePublishPlugin
-import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     id("com.gradle.plugin-publish") version "1.3.1"
