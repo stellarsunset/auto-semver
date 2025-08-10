@@ -1,10 +1,9 @@
 import com.vanniktech.maven.publish.GradlePublishPlugin
-import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     id("com.gradle.plugin-publish") version "1.3.1"
     jacoco
-    id("com.vanniktech.maven.publish") version "0.28.0"
+    id("com.vanniktech.maven.publish") version "0.34.0"
 }
 
 repositories {
@@ -73,7 +72,7 @@ tasks.javadoc {
 mavenPublishing {
     configure(GradlePublishPlugin())
 
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    publishToMavenCentral(automaticRelease = true)
 
     coordinates("io.github.stellarsunset", "auto-semver", "1.0.0")
 
