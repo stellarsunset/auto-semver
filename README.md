@@ -7,7 +7,7 @@ Automatic semantic version generation for Gradle projects based on annotated git
 
 ## Motivation
 
-There are a variety of these repositories out there with exposing configurability for a large swath of different semver
+There are a variety of these repositories out there exposing configurability for a large swath of different semver
 formats and styles.
 
 However, writing one of these plugins isn't challenging, and it allows you to:
