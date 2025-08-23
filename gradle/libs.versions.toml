@@ -1,5 +1,5 @@
 [versions]
-guava = "32.1.3-jre"
+guava = "33.4.8-jre"
 jgit = "7.3.0.202506031305-r"
 junit-jupiter = "5.13.4"
 
