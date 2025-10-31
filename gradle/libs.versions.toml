@@ -1,7 +1,7 @@
 [versions]
 guava = "33.5.0-jre"
 jgit = "7.4.0.202509020913-r"
-junit-jupiter = "6.0.0"
+junit-jupiter = "6.0.1"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
