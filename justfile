@@ -4,8 +4,7 @@ default:
 
 # Run the tests for the project
 test:
-  ./gradlew test
-  ./gradlew functionalTest
+  ./gradlew test functionalTest
 
 release type='patch': test
   ./gradlew release -P{{type}}

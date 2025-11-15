@@ -4,6 +4,7 @@
 package io.github.stellarsunset.semver;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -105,6 +106,12 @@ class AutoSemverPluginFunctionalTest {
                 .call();
 
         initializeProject(projectDir);
+
+        StoredConfig config = main.getRepository().getConfig();
+        config.setBoolean("commit", null, "gpgsign", false);
+        config.setBoolean("tag", null, "gpgsign", false);
+        config.unset("gpg", null, "format");
+        config.save();
 
         RevCommit commit = main.commit()
                 .setAuthor("junit", "junit@autosemver.github.com")
