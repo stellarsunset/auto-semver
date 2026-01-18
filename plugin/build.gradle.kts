@@ -3,7 +3,7 @@ import com.vanniktech.maven.publish.GradlePublishPlugin
 plugins {
     id("com.gradle.plugin-publish") version "2.0.0"
     jacoco
-    id("com.vanniktech.maven.publish") version "0.35.0"
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 repositories {
