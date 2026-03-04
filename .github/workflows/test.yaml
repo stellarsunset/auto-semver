@@ -28,7 +28,7 @@ jobs:
       - name: Build with Gradle
         run: gradle check
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
           name: test-results
