@@ -1,7 +1,7 @@
 import com.vanniktech.maven.publish.GradlePublishPlugin
 
 plugins {
-    id("com.gradle.plugin-publish") version "2.1.0"
+    id("com.gradle.plugin-publish") version "2.1.1"
     jacoco
     id("com.vanniktech.maven.publish") version "0.36.0"
 }
