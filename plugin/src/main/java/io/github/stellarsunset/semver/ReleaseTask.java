@@ -5,6 +5,7 @@ import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
+@DisableCachingByDefault(because = "This task is computing an incremental release version and should not be cached.")
 public class ReleaseTask extends DefaultTask {
 
     private static final Version.Serde SERDE = Version.Serde.java();
