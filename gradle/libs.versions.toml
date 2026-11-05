@@ -1,6 +1,6 @@
 [versions]
 guava = "33.7.2-jre"
-jgit = "7.8.0.202609011348-r"
+jgit = "7.8.1.202611041320-r"
 junit-jupiter = "6.1.3"
 
 [libraries]
